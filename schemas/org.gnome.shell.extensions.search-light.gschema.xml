@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist gettext-domain="search-light">
   <schema path="/org/gnome/shell/extensions/search-light/" id="org.gnome.shell.extensions.search-light">
+<<<<<<< HEAD
+=======
+    <key name="enable-search-engine" type="b">
+        <default>false</default>
+        <summary>Enable Search Engine</summary>
+        <description>Enable or disable search engine functionality</description>
+    </key>
+  <key name="search-engine" type="i">
+      <default>0</default>
+      <summary>Search engine</summary>
+      <description>Selected search engine index.</description>
+    </key>
+>>>>>>> ac136c6 (first commit)
     <key type="d" name="border-radius">
         <default>0</default>
         <summary>Border radius</summary>
@@ -41,6 +54,10 @@
         <summary>Monitors Count</summary>
         <description>Monitors found by the extension.</description>
     </key>
+<<<<<<< HEAD
+=======
+    
+>>>>>>> ac136c6 (first commit)
     <key type="as" name="shortcut-search">
         <default><![CDATA[[]]]></default>
         <summary>Shortcut</summary>
@@ -92,11 +109,14 @@
         <summary>text color</summary>
         <description>Set text color.</description>
     </key>
+<<<<<<< HEAD
     <key type="(dddd)" name="panel-icon-color">
         <default>(1.,1.,1.,1.)</default>
         <summary>text color</summary>
         <description>Set icon color.</description>
     </key>
+=======
+>>>>>>> ac136c6 (first commit)
     <key type="(dddd)" name="entry-text-color">
         <default>(1.,1.,1.,0.)</default>
         <summary>entry text color</summary>

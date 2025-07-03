@@ -3,6 +3,10 @@
 import Gdk from 'gi://Gdk';
 import Gtk from 'gi://Gtk';
 import Gio from 'gi://Gio';
+<<<<<<< HEAD
+=======
+import Adw from 'gi://Adw';
+>>>>>>> ac136c6 (first commit)
 
 import { ShortcutSettingWidget } from './shortcuts.js';
 
@@ -23,6 +27,10 @@ export default class Preferences extends ExtensionPreferences {
     let UIFolderPath = `${this.path}/ui`;
     iconTheme.add_search_path(`${UIFolderPath}/icons`);
     // ExtensionUtils.initTranslations(GETTEXT_DOMAIN);
+<<<<<<< HEAD
+=======
+
+>>>>>>> ac136c6 (first commit)
   }
 
   find(n, name) {
@@ -119,12 +127,15 @@ export default class Preferences extends ExtensionPreferences {
     window.add(builder.get_object('appearance'));
     window.set_search_enabled(true);
 
+<<<<<<< HEAD
     if (builder.get_object('qr')) {
       builder
         .get_object('qr')
         .set_from_file(`${UIFolderPath}/images/qr_icedman.png`);
     }
 
+=======
+>>>>>>> ac136c6 (first commit)
     // builder.get_object("providers-group").visible = false;
 
     let settings = this.getSettings(schemaId);
@@ -139,6 +150,42 @@ export default class Preferences extends ExtensionPreferences {
     this._monitorsConfig.connect('updated', () => this.updateMonitors());
 
     // shortcuts widget
+<<<<<<< HEAD
+=======
+    const dropdown = builder.get_object('search-engine-combo');
+
+    const searchEngineFile = this.dir.get_child('search-engines.json');
+    const [, contents] = searchEngineFile.load_contents(null);
+    const json = JSON.parse(new TextDecoder().decode(contents));
+    const searchEngineNames = json.map(d => d.name);
+
+    const enableSearchEngineSwitch = builder.get_object('enable-search-engine-switch');
+    const searchEngineCombo = builder.get_object('search-engine-combo');
+
+    function updateSearchEngineOptions() {
+      const isEnabled = enableSearchEngineSwitch.active;
+      searchEngineCombo.sensitive = isEnabled;
+
+      if (!isEnabled) {
+        searchEngineCombo.expanded = false;
+      }
+    }
+   
+    enableSearchEngineSwitch.connect('notify::active', updateSearchEngineOptions);
+
+    updateSearchEngineOptions();
+
+
+
+    const list = new Gtk.StringList();
+    searchEngineNames.forEach(name => list.append(name));
+
+    dropdown.set_model(list);
+    dropdown.set_selected(settings.get_int('search-engine'));
+
+    settings.bind('search-engine', dropdown, 'selected', Gio.SettingsBindFlags.DEFAULT);
+
+>>>>>>> ac136c6 (first commit)
     {
       let placeholder = builder.get_object('shortcut-search-placeholder');
       placeholder.append(

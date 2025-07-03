@@ -1,5 +1,6 @@
 ## ROADMAP
 
+<<<<<<< HEAD
 ## release 38
 
 * fork gnome 48 from 47
@@ -13,6 +14,11 @@
 * add web search (scrapped)
 * add unit conversion (scrapped)
 * add currency conversion (scrapped)
+=======
+* add web search
+* add unit conversion
+* add currency conversion
+>>>>>>> ac136c6 (first commit)
 
 ## release 15
 

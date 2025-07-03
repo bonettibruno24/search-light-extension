@@ -69,6 +69,7 @@
             </child>
           </object>
         </child>
+<<<<<<< HEAD
         <child>
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Topbar Icon Color</property>
@@ -86,6 +87,8 @@
             </child>
           </object>
         </child>
+=======
+>>>>>>> ac136c6 (first commit)
       </object>
     </child>
     <child>
@@ -179,7 +182,11 @@
             </child>
           </object>
         </child>
+<<<<<<< HEAD
         <child>
+=======
+        <child> 
+>>>>>>> ac136c6 (first commit)
           <object class="AdwActionRow">
             <property name="title" translatable="yes">Window Effect</property>
             <property name="subtitle" translatable="yes">Set window rendering effect.</property>

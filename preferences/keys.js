@@ -88,10 +88,13 @@ export const SettingsKeys = () => {
       default_value: false,
       widget_type: 'switch',
     },
+<<<<<<< HEAD
     'panel-icon-color': {
       default_value: [1, 1, 1, 1],
       widget_type: 'color',
     },
+=======
+>>>>>>> ac136c6 (first commit)
     'unit-converter': {
       default_value: false,
       widget_type: 'switch',
