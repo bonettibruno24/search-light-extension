@@ -66,6 +66,9 @@ export default class SearchLightExt extends Extension {
     this._decoder = null;
     this.searchEngineUrls = null;
     this.searchEngineIcons = null;
+    this._builder = null;
+    this._switch = null;
+    this.settings = this.getSettings();
   }
   _setSearchEngines() {
     this._decoder = new TextDecoder();
@@ -76,29 +79,69 @@ export default class SearchLightExt extends Extension {
     this.searchEngineIcons = json.map(d => d.icon);
   }
 
+ enableSearchEngine() {
+  if (this._decoder === null) {
+    this._setSearchEngines();
+  }
+
+  if (this._provider === null) {
+    this._provider = new SearchProvider(this);
+  }
+
+  if (Main.overview && Main.overview.searchController) {
+    Main.overview.searchController.addProvider(this._provider);
+  }
+
+  if (Main.overview.visible) {
+    Main.overview.hide();
+    Main.overview.show();
+  }
+}
+  
   _deleteSearchEngines() {
     this._decoder = null;
     this.searchEngineUrls = null;
     this.searchEngineIcons = null;
   }
-  
-  enableSearchEngine() {
-    if (this._decoder === null) {
-      this._setSearchEngines();
-    }
 
-    if (this._provider === null) {
-      this._provider = new SearchProvider(this);
-      Main.overview.searchController.addProvider(this._provider);
+  disableSearchEngine() {
+    if (this._provider instanceof SearchProvider) {
+      try {
+        if (Main.overview && Main.overview.searchController) {
+          Main.overview.searchController.removeProvider(this._provider);
+          Main.overview.searchController.reset();
+        }
+      } catch (e) {
+        log(`Erro ao remover provider: ${e}`);
+      }
+      this._provider = null;
+    }
+    this._provider = null;
+
+     if (Main.overview.visible) {
+      Main.overview.hide();
+      Main.overview.show();
     }
   }
 
   enable() {
     Main.overview.graphene = Graphene;
-
-    //Part rendering search engine 
-
-    this.enableSearchEngine()
+    this._settingsChangedId = this.settings.connect('changed::enable-search-engine', () => {
+      const val = this.settings.get_boolean('enable-search-engine');
+    
+      if (this.settings.get_boolean('enable-search-engine')) {
+        this.enableSearchEngine();
+      } else {
+        this.disableSearchEngine();
+      }
+    });
+    
+    const initVal = this.settings.get_boolean('enable-search-engine');
+    if (this.settings.get_boolean('enable-search-engine')) {
+      this.enableSearchEngine();
+    } else {
+      this.disableSearchEngine();
+    }
 
     this._style = new Style();
 
@@ -109,10 +152,10 @@ export default class SearchLightExt extends Extension {
     this._loTimer = new Timer('lo-res timer');
     this._loTimer.initialize(750);
 
-    this._settings = this.getSettings(schemaId);
+    //this.settings = this.getSettings(schemaId);
     this._settingsKeys = SettingsKeys();
 
-    this._settingsKeys.connectSettings(this._settings, (name, value) => {
+    this._settingsKeys.connectSettings(this.settings, (name, value) => {
       let n = name.replace(/-/g, '_');
       this[n] = value;
       switch (name) {
@@ -159,7 +202,6 @@ export default class SearchLightExt extends Extension {
       if (key.options) {
         this[`${name}_options`] = key.options;
       }
-      // console.log(`${name} ${key.value}`);
     });
 
     this._desktopSettings = new Gio.Settings({
@@ -204,8 +246,8 @@ export default class SearchLightExt extends Extension {
     this._updateShortcut2();
     this._updateCss();
 
-    this._useAnimations = this._settings.get_boolean('use-animations');
-    this._animationSpeed = this._settings.get_double('animation-speed');
+    this._useAnimations = this.settings.get_boolean('use-animations');
+    this._animationSpeed = this.settings.get_double('animation-speed');
 
     Main.overview.connectObject(
       'overview-showing',
@@ -260,13 +302,21 @@ export default class SearchLightExt extends Extension {
     this._updateBlurredBackground();
   }
 
+
   disable() {
     if (this._provider instanceof SearchProvider) {
       Main.overview.searchController.removeProvider(this._provider);
       this._provider = null;
     }
+
+    this.disableSearchEngine();
     this._deleteSearchEngines();
 
+    if (this._settingsChangedId) {
+      this.settings.disconnect(this._settingsChangedId);
+      this._settingsChangedId = null;
+    }
+    
     this._hiTimer?.shutdown();
     this._loTimer?.shutdown();
     this._hiTimer = null;
@@ -284,7 +334,7 @@ export default class SearchLightExt extends Extension {
     this._style = null;
 
     this._settingsKeys.disconnectSettings();
-    this._settings = null;
+    this.settings = null;
 
     this._desktopSettings.disconnectObject();
     this._desktopSettings = null;
@@ -710,7 +760,7 @@ export default class SearchLightExt extends Extension {
     this.sh = this.monitor.height;
 
     if (this._last_monitor_count != Main.layoutManager.monitors.length) {
-      this._settings.set_int(
+      this.settings.set_int(
         'monitor-count',
         Main.layoutManager.monitors.length,
       );
@@ -1071,42 +1121,5 @@ export default class SearchLightExt extends Extension {
   _onFullScreen() {
     this.hide();
   }
-
-  // enable() {
-  //   this._provider = null;
-  //   this._decoder = null;
-  //   this.searchEngineUrls = [];
-  //   this.searchEngineIcons = [];
-
-  //   this._setSearchEngines();
-
-  //   this._provider = new SearchProvider(this);
-  //   console.log('SearchLightExt: provider keys:', Object.keys(this._provider));
-  //   Main.overview.searchController.addProvider(this._provider);
-
-
-  // }
-
-  // _setSearchEngines() {
-  //   this._decoder = new TextDecoder();
-  //   const searchEngineFile = this.dir.get_child('search-engines.json');
-  //   const [, contents, etag] = searchEngineFile.load_contents(null);
-  //   const json = JSON.parse(this._decoder.decode(contents));
-  //   this.searchEngineUrls = json.map(d => d.url);
-  //   this.searchEngineIcons = json.map(d => d.icon);
-  // }
-
-  // _deleteSearchEngines() {
-  //   this._decoder = null;
-  //   this.searchEngineUrls = null;
-  //   this.searchEngineIcons = null;
-  // }
-  // disable() {
-  //   if (this._provider instanceof SearchProvider) {
-  //     Main.overview.searchController.removeProvider(this._provider);
-  //     this._provider = null;
-  //   }
-  //   this._deleteSearchEngines();
-  // }
 
 }
