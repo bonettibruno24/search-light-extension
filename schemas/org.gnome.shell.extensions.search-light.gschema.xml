@@ -2,9 +2,17 @@
 <schemalist gettext-domain="search-light">
   <schema path="/org/gnome/shell/extensions/search-light/" id="org.gnome.shell.extensions.search-light">
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+  <key name="selected-browser" type="i">
+        <default>0</default>
+        <summary>Selected browser</summary>
+        <description>Index of the selected browser from available browsers list</description>
+    </key>
+>>>>>>> 873f9db (feat: add Search Engine functionality with browser selection and fallback to xdg-open)
     <key name="enable-search-engine" type="b">
-        <default>false</default>
+        <default>true</default>
         <summary>Enable Search Engine</summary>
         <description>Enable or disable search engine functionality</description>
     </key>

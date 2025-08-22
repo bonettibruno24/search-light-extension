@@ -1,14 +1,11 @@
 
 import Gio from 'gi://Gio';
 import St from 'gi://St';
-
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+import { getBrowserList } from './utils.js';
 
 
 export class SearchProvider {
     constructor(extension) {
-        console.log('[SearchProvider] Instanciado');
         this._extension = extension;
         this.searchEngineIcons = extension.searchEngineIcons;
     }
@@ -48,6 +45,21 @@ export class SearchProvider {
         return this._extension.uuid;
     }
 
+ 
+    /**
+     * Get the browser command based on user settings
+     * @returns {string} Browser command to use
+     */    
+    _getBrowserCommand() {
+        this.settings = this._extension.getSettings();
+        const browserIndex = this.settings.get_int('selected-browser') || 0;
+        const availableBrowsers = getBrowserList ();
+        if (browserIndex < availableBrowsers.length) {
+            return availableBrowsers[browserIndex].command;
+        }
+        return 'xdg-open';
+    }
+
     /**
      * Launch the search result.
      *
@@ -58,26 +70,41 @@ export class SearchProvider {
      */
     activateResult(result, terms) {
         const context = new Gio.AppLaunchContext;
-
         this.settings = this._extension.getSettings();
         const searchEngine = this.settings.get_int('search-engine');
+        const browserCommand = this._getBrowserCommand();
 
-        var cmd = `xdg-open `
-        console.log('[SearchProvider] activateResult:', result, terms);
+        var cmd = `${browserCommand} `;
+
         const urlRegex = /(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)/;
         if (urlRegex.test(terms.join(" ")) && terms.join(" ").match(urlRegex)[0].length == terms.join(" ").length) {
             if (terms.join(" ").startsWith("http://") || terms.join(" ").startsWith("https://")) {
-                cmd += terms.join(" ")
+                cmd += terms.join(" ");
             } else {
-                cmd += `https://${terms.join(" ")}`
+                cmd += `https://${terms.join(" ")}`;
             }
         } else {
-            cmd += `"${this._extension.searchEngineUrls[searchEngine]}${terms.join('+')}"`
+            const searchUrl = `${this._extension.searchEngineUrls[searchEngine]}${terms.join('+')}`;
+            // For browsers other than xdg-open, we might need to quote the URL
+            if (browserCommand === 'xdg-open') {
+                cmd += `"${searchUrl}"`;
+            } else {
+                cmd += `"${searchUrl}"`;
+            }
         }
-        Gio.AppInfo.create_from_commandline(cmd, null, 2).launch([], context);
+
+        try {
+            Gio.AppInfo.create_from_commandline(cmd, null, 2).launch([], context);
+        } catch (error) {
+            console.error('[SearchProvider] Error launching browser:', error);
+            // Fallback to system default
+            const fallbackCmd = `xdg-open "${this._extension.searchEngineUrls[searchEngine]}${terms.join('+')}"`
+            Gio.AppInfo.create_from_commandline(fallbackCmd, null, 2).launch([], context);
+        }
     }
 
-    /**
+
+    /**ando padrão do Linux que a
      * Launch the search provider.
      *
      * This method is called when a search provider is activated. A provider can
@@ -118,47 +145,47 @@ export class SearchProvider {
      * @returns {Promise<ResultMeta[]>} A list of result metadata objects
      */
 
-   getResultMetas(results, cancellable = null) {
-    try {
-        this.settings = this._extension.getSettings();
-        
-        const searchEngine = this.settings.get_int('search-engine');
-        const iconData = this._extension.searchEngineIcons[searchEngine];
-        const giconPath = this._extension.path + '/' + iconData;
-        const gicon = Gio.icon_new_for_string(giconPath);
-        const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+    getResultMetas(results, cancellable = null) {
+        try {
+            this.settings = this._extension.getSettings();
 
-        return new Promise((resolve, reject) => {
-            const resultMetas = [];
+            const searchEngine = this.settings.get_int('search-engine');
+            const iconData = this._extension.searchEngineIcons[searchEngine];
+            const giconPath = this._extension.path + '/' + iconData;
+            const gicon = Gio.icon_new_for_string(giconPath);
+            const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
 
-            for (let identifier of results) {
-                const meta = {
-                    id: identifier,
-                    name: 'Web Search',
-                    description: 'Launch web search',
-                    createIcon: (size) => {
-                        try {
-                            return new St.Icon({
-                                gicon,
-                                width: size * scaleFactor,
-                                height: size * scaleFactor,
-                                icon_size: size * scaleFactor
-                            });
-                        } catch (iconError) {
-                            return null;
+            return new Promise((resolve, reject) => {
+                const resultMetas = [];
+
+                for (let identifier of results) {
+                    const meta = {
+                        id: identifier,
+                        name: 'Web Search',
+                        description: 'Launch web search',
+                        createIcon: (size) => {
+                            try {
+                                return new St.Icon({
+                                    gicon,
+                                    width: size * scaleFactor,
+                                    height: size * scaleFactor,
+                                    icon_size: size * scaleFactor
+                                });
+                            } catch (iconError) {
+                                return null;
+                            }
                         }
-                    }
-                };
-                resultMetas.push(meta);
-            }
+                    };
+                    resultMetas.push(meta);
+                }
 
-            resolve(resultMetas);
-        });
+                resolve(resultMetas);
+            });
 
-    } catch (error) {
-        return Promise.resolve([]);
+        } catch (error) {
+            return Promise.resolve([]);
+        }
     }
-}
 
     /**
      * Initiate a new search.
