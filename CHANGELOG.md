@@ -1,5 +1,12 @@
 ## ROADMAP
 
+## release 16
+
+* add Search Engine functionality with enable/disable option
+* allow selecting preferred Search Engine provider (DuckDuckGo, Bing, Brave, Google, etc.)
+* allow selecting preferred browser application to open search results; if the selected browser is not available, fallback to the system default using `xdg-open`
+
+
 * add web search
 * add unit conversion
 * add currency conversion
